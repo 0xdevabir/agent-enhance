@@ -4,7 +4,7 @@ import type { EnhanceConfig } from '../types.js';
 const DEFAULT_CONFIG: EnhanceConfig = {
   provider: 'claude',
   model: 'claude-sonnet-4-6',
-  maxContextTokens: 3000,
+  maxContextTokens: 8000,
 };
 
 export async function loadConfig(root: string): Promise<EnhanceConfig> {
