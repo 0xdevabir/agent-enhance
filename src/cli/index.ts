@@ -49,6 +49,7 @@ Examples:
   .option('--preview', 'Color-coded prompt preview with per-section token counts')
   .option('--verbose', 'Show detected stack, intent, and context stats')
   .option('--confirm', 'Show detected intent and ask for approval before enhancing')
+  .option('--plan', 'Decompose complex task into sequential sub-prompts (uses AI)')
   .option('--action <action>', 'Override detected action (create|fix|refactor|explain|add|delete)')
   .option('--entity <entity>', 'Override detected entity (page|component|api|hook|util|config|style)')
   .option('--feature <feature>', 'Override detected feature (auth|payment|user|upload|...)')
@@ -59,6 +60,7 @@ Examples:
     preview: boolean;
     verbose: boolean;
     confirm: boolean;
+    plan: boolean;
     action?: string;
     entity?: string;
     feature?: string;
@@ -90,6 +92,28 @@ Examples:
       if (opts.action) intent = { ...intent, action: opts.action as Intent['action'] };
       if (opts.entity) intent = { ...intent, entity: opts.entity as Intent['entity'] };
       if (opts.feature) intent = { ...intent, feature: opts.feature };
+
+      // --plan: decompose into sequential sub-prompts
+      if (opts.plan) {
+        if (!config.apiKey) {
+          error('ANTHROPIC_API_KEY required for --plan');
+          process.exit(1);
+        }
+        spinner.text = 'Decomposing task into steps...';
+        const plan = await decomposeToPlan(rawPrompt, intent, scan.stack, config.apiKey);
+        spinner.stop();
+        console.log('\n' + chalk.bold(`Implementation Plan (${plan.steps.length} steps)\n`));
+        for (const step of plan.steps) {
+          console.log(chalk.cyan(`Step ${step.step}: ${step.title}`));
+          if (step.dependsOn.length > 0) {
+            console.log(chalk.dim(`  Depends on: Step ${step.dependsOn.join(', ')}`));
+          }
+          console.log(chalk.dim('─'.repeat(60)));
+          console.log(step.prompt);
+          console.log();
+        }
+        process.exit(0);
+      }
 
       // --confirm: show intent and ask for approval
       if (opts.confirm) {
