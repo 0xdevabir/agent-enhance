@@ -6,7 +6,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex flex-col w-full min-h-screen">
       <Navbar />
-      <div className="flex flex-1 max-w-6xl mx-auto w-full px-5 py-8 gap-10">
+      <div className="flex flex-1 max-w-[72rem] mx-auto w-full px-5 py-8 gap-10">
         <DocsSidebar />
 
         {/* Content */}

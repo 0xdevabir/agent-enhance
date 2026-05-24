@@ -19,12 +19,12 @@ export default function Navbar() {
 
   return (
     <motion.header
-      className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-md"
+      className="sticky top-0 z-50 w-full border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-md"
       initial={{ y: -60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.25, 0.4, 0.25, 1] }}
     >
-      <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
+      <div className="max-w-[72rem] mx-auto px-5 h-14 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 font-semibold text-white group">
           <motion.div
             className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center"

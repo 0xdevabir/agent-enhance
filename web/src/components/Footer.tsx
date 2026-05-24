@@ -4,7 +4,7 @@ import { Zap } from "lucide-react";
 export default function Footer() {
   return (
     <footer className="border-t border-[var(--border)] mt-auto">
-      <div className="max-w-6xl mx-auto px-5 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="max-w-[72rem] mx-auto px-5 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
           <Zap size={14} className="text-indigo-400" />
           <span>enhance</span>

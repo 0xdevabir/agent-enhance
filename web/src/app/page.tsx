@@ -107,9 +107,9 @@ function InstallBox() {
 
 export default function Home() {
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <BackgroundOrbs />
-      <div className="relative z-10 flex flex-col min-h-screen">
+      <div className="relative z-10 flex flex-col min-h-screen w-full">
         <Navbar />
 
         {/* ── Hero ─────────────────────────────────────── */}
@@ -122,7 +122,7 @@ export default function Home() {
           </FadeIn>
 
           <FadeIn delay={0.1}>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.08] mb-6 max-w-4xl">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.08] mb-6 max-w-[56rem]">
               <span className="text-white">Your AI coding prompt,</span>
               <br />
               <span className="shimmer-text">upgraded automatically</span>
@@ -130,13 +130,13 @@ export default function Home() {
           </FadeIn>
 
           <FadeIn delay={0.2}>
-            <p className="text-lg md:text-xl text-[var(--muted-foreground)] mb-10 max-w-xl leading-relaxed">
+            <p className="text-lg md:text-xl text-[var(--muted-foreground)] mb-10 max-w-[36rem] leading-relaxed">
               Enhance scans your project, detects your stack, and rewrites vague prompts
               into structured AI instructions — before you hit send.
             </p>
           </FadeIn>
 
-          <FadeIn delay={0.3} className="w-full max-w-xl">
+          <FadeIn delay={0.3} className="w-full max-w-[36rem]">
             <InstallBox />
           </FadeIn>
 
@@ -173,7 +173,8 @@ export default function Home() {
         </section>
 
         {/* ── Before / After ───────────────────────────── */}
-        <section className="px-5 py-16 max-w-6xl mx-auto w-full">
+        <section className="px-5 py-16">
+          <div className="max-w-[72rem] mx-auto">
           <div className="section-divider mb-16" />
 
           <FadeIn className="text-center mb-12">
@@ -183,7 +184,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 gap-4 items-start">
             {/* Before */}
-            <ScaleIn delay={0.1}>
+            <ScaleIn delay={0.1} className="min-w-0">
               <div className="gradient-border overflow-hidden">
                 <div className="terminal-header">
                   <div className="terminal-dot bg-red-500/70" />
@@ -204,7 +205,7 @@ export default function Home() {
             </ScaleIn>
 
             {/* After */}
-            <ScaleIn delay={0.2}>
+            <ScaleIn delay={0.2} className="min-w-0">
               <div className="gradient-border overflow-hidden">
                 <div className="terminal-header">
                   <div className="terminal-dot bg-red-500/70" />
@@ -213,7 +214,7 @@ export default function Home() {
                   <span className="ml-2 text-xs text-[var(--muted-foreground)] font-mono">AI receives</span>
                   <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400">enhanced</span>
                 </div>
-                <div className="p-5">
+                <div className="p-5 overflow-x-auto">
                   <TypingCode
                     lines={AFTER_LINES}
                     speed={12}
@@ -224,11 +225,12 @@ export default function Home() {
               </div>
             </ScaleIn>
           </div>
+          </div>
         </section>
 
         {/* ── How it works ─────────────────────────────── */}
         <section className="px-5 py-20">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-[72rem] mx-auto">
             <div className="section-divider mb-16" />
 
             <FadeIn className="text-center mb-14">
@@ -260,7 +262,7 @@ export default function Home() {
 
         {/* ── Features + Quick start ────────────────────── */}
         <section className="px-5 py-20">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-[72rem] mx-auto">
             <div className="section-divider mb-16" />
 
             <div className="grid md:grid-cols-2 gap-16 items-center">
@@ -330,7 +332,7 @@ export default function Home() {
         {/* ── CTA ──────────────────────────────────────── */}
         <section className="px-5 py-24">
           <div className="section-divider mb-16" />
-          <FadeIn className="max-w-2xl mx-auto text-center">
+          <FadeIn className="max-w-[42rem] mx-auto text-center">
             <div className="gradient-border p-10 rounded-2xl relative overflow-hidden">
               {/* Inner glow */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
