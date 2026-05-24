@@ -1,6 +1,6 @@
 {
   "name": "@0xdevabir/enhance",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "AI prompt middleware — intelligently rewrites developer prompts before sending to coding agents",
   "bin": {
     "enhance": "./bin/enhance.js"
