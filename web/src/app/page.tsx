@@ -10,6 +10,7 @@ import TypingCode from "@/components/TypingCode";
 import { FadeIn, StaggerChildren, StaggerItem, ScaleIn, SlideIn, AnimatedCounter, GlowCard } from "@/components/Animations";
 
 const INSTALL_CMD = "npm install -g @0xdevabir/enhance";
+const NPXCMD = "npx @0xdevabir/enhance@latest \"build a login page\"";
 
 const AFTER_LINES = [
   "## ✦ Enhanced Prompt",
@@ -84,26 +85,58 @@ const FEATURES = [
 
 function InstallBox() {
   const [copied, setCopied] = useState(false);
+  const [tab, setTab] = useState<"install" | "npx">("install");
+
+  const cmd = tab === "install" ? INSTALL_CMD : NPXCMD;
 
   const copy = async () => {
-    await navigator.clipboard.writeText(INSTALL_CMD);
+    await navigator.clipboard.writeText(cmd);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <motion.button
-      onClick={copy}
-      whileHover={{ scale: 1.01, borderColor: "rgba(99,102,241,0.4)" }}
-      whileTap={{ scale: 0.99 }}
-      className="w-full group flex items-center gap-4 px-6 py-4 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-indigo-500/30 hover:bg-[var(--card-hover)] transition-colors duration-300 font-mono text-sm cursor-pointer"
-    >
-      <span className="text-[var(--muted-foreground)] text-base">$</span>
-      <span className="text-indigo-300 text-sm">{INSTALL_CMD}</span>
-      <span className="ml-auto pl-4 border-l border-[var(--border)] text-[var(--muted-foreground)] group-hover:text-white transition-colors">
-        {copied ? <Check size={15} className="text-green-400" /> : <Copy size={15} />}
-      </span>
-    </motion.button>
+    <div className="w-full">
+      {/* Tab switcher */}
+      <div className="flex gap-1 mb-2">
+        {(["install", "npx"] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+              tab === t
+                ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                : "text-[var(--muted-foreground)] hover:text-white border border-transparent"
+            }`}
+          >
+            {t === "install" ? "Global install" : "npx (no install)"}
+          </button>
+        ))}
+      </div>
+
+      <motion.button
+        onClick={copy}
+        whileHover={{ scale: 1.01, borderColor: "rgba(99,102,241,0.4)" }}
+        whileTap={{ scale: 0.99 }}
+        className="w-full group flex items-center gap-4 px-6 py-4 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-indigo-500/30 hover:bg-[var(--card-hover)] transition-colors duration-300 font-mono text-sm cursor-pointer"
+      >
+        <span className="text-[var(--muted-foreground)] text-base">$</span>
+        <span className="text-indigo-300 text-sm truncate">{cmd}</span>
+        <span className="ml-auto pl-4 border-l border-[var(--border)] text-[var(--muted-foreground)] group-hover:text-white transition-colors flex-shrink-0">
+          {copied ? <Check size={15} className="text-green-400" /> : <Copy size={15} />}
+        </span>
+      </motion.button>
+
+      {tab === "install" && (
+        <p className="text-xs text-[var(--muted-foreground)] mt-2">
+          Permission error?{" "}
+          <button onClick={() => setTab("npx")} className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2">
+            Use npx instead
+          </button>
+          {" "}— no install needed.
+        </p>
+      )}
+    </div>
   );
 }
 

@@ -56,16 +56,35 @@ export default function InstallationPage() {
       <FadeIn delay={0.2}>
         <div className="flex items-center gap-3 mb-3">
           <span className="step-circle">1</span>
-          <h2 className="!mt-0 !mb-0">Install globally</h2>
+          <h2 className="!mt-0 !mb-0">Install (pick one)</h2>
         </div>
-        <CodeBlock code="npm install -g @0xdevabir/enhance" filename="Terminal" />
-        <p className="text-xs text-[var(--muted-foreground)] mt-3 mb-4">
-          If you get a permission error, fix npm permissions first:
-        </p>
-        <CodeBlock
-          code={`mkdir -p ~/.npm-global\nnpm config set prefix '~/.npm-global'\necho 'export PATH=$HOME/.npm-global/bin:$PATH' >> ~/.zshrc\nsource ~/.zshrc\nnpm install -g @0xdevabir/enhance`}
-          filename="Fix npm permissions (macOS/Linux)"
-        />
+
+        <div className="mb-3">
+          <p className="text-sm font-medium text-green-400 mb-1.5">Option A — No install needed (recommended)</p>
+          <CodeBlock code={`npx @0xdevabir/enhance@latest "build a login page"`} filename="Terminal" />
+          <p className="text-xs text-[var(--muted-foreground)] mt-2 mb-5">
+            Runs directly without touching your system. Use this if you just want to try it, or if you see a permission error below.
+          </p>
+        </div>
+
+        <div className="mb-3">
+          <p className="text-sm font-medium text-blue-400 mb-1.5">Option B — Global install (for daily use)</p>
+          <CodeBlock code="npm install -g @0xdevabir/enhance" filename="Terminal" />
+        </div>
+
+        <div className="callout-warning mb-2">
+          <p className="text-sm font-semibold text-amber-400 mb-1">Permission error? (EACCES)</p>
+          <p className="text-xs text-[var(--muted-foreground)] mb-3 leading-relaxed">
+            This means Node.js was installed without nvm and your system owns{" "}
+            <code className="text-amber-300 bg-amber-500/10 px-1 rounded">/usr/local/lib/node_modules</code>.
+            Fix it once with Option C, or just use Option A above.
+          </p>
+          <p className="text-sm font-medium text-amber-400 mb-1.5">Option C — Fix npm prefix, then install</p>
+          <CodeBlock
+            code={`mkdir -p ~/.npm-global\nnpm config set prefix '~/.npm-global'\necho 'export PATH=$HOME/.npm-global/bin:$PATH' >> ~/.zshrc\nsource ~/.zshrc\nnpm install -g @0xdevabir/enhance`}
+            filename="Terminal (run once)"
+          />
+        </div>
       </FadeIn>
 
       <FadeIn delay={0.25}>
