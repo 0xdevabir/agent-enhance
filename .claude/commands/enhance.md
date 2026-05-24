@@ -1,77 +1,62 @@
-Before executing the task below, perform the following project analysis steps silently (do not narrate them — just do them):
+Your job is to rewrite the following messy/vague prompt into a structured, detailed, production-quality prompt that will get dramatically better results from any AI coding agent.
 
-1. Read `package.json` to detect: frameworks (next, react, vue, svelte, express, fastify, hono), styling (tailwindcss, shadcn), ORM (prisma, drizzle, mongoose, typeorm), testing (vitest, jest), language (typescript or javascript)
-2. Check for `tsconfig.json` — note path aliases if present
-3. Scan top-level folders and `src/` (if present) — note structure, whether `app/` or `pages/` dir exists (Next.js router type), common dirs like `components/`, `lib/`, `hooks/`, `utils/`
-4. Based on the detected stack, identify 1-3 existing files most relevant to the task and read them for pattern/convention reference
-
-Then, using everything you discovered, execute this task:
+**Original prompt:** $ARGUMENTS
 
 ---
 
-**Task:** $ARGUMENTS
+**Step 1 — Scan the project silently:**
+- Read `package.json` → detect frameworks, language, ORM, testing tools, UI library
+- Check for `tsconfig.json` → note path aliases
+- Scan folder structure → note `app/` vs `pages/` (Next.js router), `src/`, `components/`, `lib/`, `hooks/`
+- Read 1-2 existing files most relevant to the prompt topic (for pattern/convention reference)
+
+**Step 2 — Understand the intent:**
+- What is the user actually trying to build/fix/refactor?
+- What entity is involved? (page, component, API, hook, util)
+- What feature domain? (auth, payment, dashboard, upload, etc.)
+
+**Step 3 — Output the enhanced prompt in this exact format:**
+
+---
+## ✦ Enhanced Prompt
+
+**Context:**
+[Project stack, folder conventions, existing patterns found]
+
+**Task:**
+[Rewrite the original request as a clear, specific, unambiguous instruction]
+
+**Requirements:**
+[8-15 specific requirements based on detected stack + task domain:]
+- Language/type safety (TypeScript, Zod, no `any`)
+- Framework rules (App Router, server components, next/navigation, etc.)
+- UI/styling (Tailwind, shadcn components)
+- Security if relevant (auth → bcrypt, httpOnly; API → input validation)
+- Code quality (match existing conventions, reuse utils, no unnecessary deps)
+- Output rule: list every file created/modified at the end
+
+**Relevant existing code:**
+[1-2 file snippets for reference, or "no relevant files found"]
 
 ---
 
-Apply these rules based on what you detected:
+**Step 4 — Ask the user:**
+> Does this look right? Reply **yes** to execute, **no** to refine, or edit any part of the prompt above.
 
-**Always:**
-- Match the existing code style, naming conventions, and folder structure you observed
-- List every file you create or modify at the end of your response
-- Prefer reusing existing utilities over creating new ones
-- No unnecessary dependencies
+---
 
-**If TypeScript detected:**
-- No `any` — use `unknown` + type guards if needed
-- Export all types and interfaces
-- Use Zod for validation at external boundaries (API input, form submissions)
+**Step 5 — Handle the response:**
 
-**If Next.js App Router detected:**
-- Server Components by default — `"use client"` only when browser APIs or interactivity needed
-- Use `next/navigation` (not `next/router`)
-- Follow file conventions: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `route.ts`
-- Prefer server actions for mutations
+If the user says **yes** → execute the enhanced prompt exactly as written above.
 
-**If Next.js Pages Router detected:**
-- Use `next/router` for navigation
-- Data fetching in `getServerSideProps` or `getStaticProps`
+If the user says **no** or gives feedback → do all of the following:
+1. Ask: "What's missing or wrong? (e.g. wrong framework assumed, missing requirement, task unclear)"
+2. Wait for their answer
+3. Revise the enhanced prompt incorporating their feedback
+4. Show the updated prompt in the same format above
+5. Ask again: "Better? Reply yes to execute or no to keep refining."
+6. Repeat this loop until the user says yes.
 
-**If React / Next.js detected:**
-- Small, focused components
-- Extract reusable logic into custom hooks
-- Composition over prop drilling
-- Accessible: aria labels, keyboard navigation, semantic HTML
+If the user edits specific parts of the prompt → accept their edits, merge with the enhanced version, confirm, then execute.
 
-**If TailwindCSS detected:**
-- Tailwind classes only — no custom CSS unless unavoidable
-- Mobile-first: base = mobile, `md:` / `lg:` for larger
-
-**If shadcn/ui detected:**
-- Use shadcn components (Button, Input, Dialog, Form, etc.) — import from `@/components/ui/`
-
-**If Prisma detected:**
-- Use Prisma client for all DB operations
-- Wrap multi-step operations in a transaction
-
-**If the task involves authentication:**
-- Never plain-text passwords — use bcrypt or argon2
-- httpOnly, Secure cookies for session tokens — never localStorage
-- Server-side validation on all inputs
-- Note: consider rate limiting on auth endpoints
-- CSRF protection on state-changing operations
-
-**If the task involves file upload:**
-- Validate file type and size server-side (not just client-side)
-- Sanitize filenames before storage
-- Prefer presigned URLs for direct-to-storage uploads
-
-**If the task involves an API endpoint:**
-- Consistent response shape: `{ data, error }`
-- Explicit error handling — no unhandled rejections leaking to client
-- Validate all input with Zod before processing
-- Correct HTTP status codes
-
-**If the task involves payments:**
-- Never log or store raw card data
-- Verify webhook signatures server-side
-- Use idempotency keys for payment operations
+The goal: never execute until the user is satisfied with the enhanced prompt.
