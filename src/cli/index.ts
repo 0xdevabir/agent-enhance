@@ -34,15 +34,15 @@ program
 
 // ── enhance (default) ──────────────────────────────────────────────────────
 program
-  .command('<prompt>', { isDefault: true })
-  .description('Enhance a prompt and send to AI')
+  .argument('[prompt]', 'Prompt to enhance and send to AI')
   .addHelpText('after', `
 Examples:
   enhance "build a login page"
   enhance "fix the auth bug" --dry-run
   enhance "create dashboard" --confirm --verbose
   enhance "refactor user service" --provider codex
-  enhance "add auth" --action add --feature auth`)
+  enhance "add auth" --action add --feature auth
+  enhance "add payments" --iteration 1`)
   .option('-p, --provider <name>', 'AI provider: claude | codex | opencode')
   .option('--dry-run', 'Print enhanced prompt without sending to AI')
   .option('--print-prompt', 'Print enhanced prompt before sending to AI')
@@ -54,7 +54,7 @@ Examples:
   .option('--action <action>', 'Override detected action (create|fix|refactor|explain|add|delete)')
   .option('--entity <entity>', 'Override detected entity (page|component|api|hook|util|config|style)')
   .option('--feature <feature>', 'Override detected feature (auth|payment|user|upload|...)')
-  .action(async (rawPrompt: string, opts: {
+  .action(async (rawPrompt: string | undefined, opts: {
     provider?: string;
     dryRun: boolean;
     printPrompt: boolean;
