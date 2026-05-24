@@ -9,6 +9,7 @@ import { analyzeIntent } from '../analyzer/intent.js';
 import { findRelevantFiles } from '../analyzer/context.js';
 import { enhance } from '../enhancer/index.js';
 import { getProvider } from '../providers/index.js';
+import { runSetup } from './setup.js';
 
 const program = new Command();
 
@@ -17,18 +18,41 @@ program
   .description('AI prompt middleware — upgrades vague prompts into production-quality AI instructions')
   .version('0.1.0');
 
+// ── setup ──────────────────────────────────────────────────────────────────
 program
-  .argument('<prompt>', 'The raw prompt to enhance')
-  .option('-p, --provider <name>', 'AI provider: claude | codex | opencode', 'claude')
+  .command('setup')
+  .description('Install the /enhance slash command for Claude Code, OpenCode, and Codex CLI')
+  .option('--force', 'Overwrite existing installations')
+  .option('--all', 'Install for all supported tools even if not detected in PATH')
+  .action(async (opts: { force: boolean; all: boolean }) => {
+    await runSetup(opts);
+  });
+
+// ── enhance (default) ──────────────────────────────────────────────────────
+program
+  .command('<prompt>', { isDefault: true })
+  .description('Enhance a prompt and send to AI')
+  .addHelpText('after', `
+Examples:
+  enhance "build a login page"
+  enhance "fix the auth bug" --dry-run
+  enhance "create dashboard" --print-prompt --verbose
+  enhance "refactor user service" --provider codex`)
+  .option('-p, --provider <name>', 'AI provider: claude | codex | opencode')
   .option('--dry-run', 'Print enhanced prompt without sending to AI')
-  .option('--print-prompt', 'Print enhanced prompt before sending')
-  .option('--verbose', 'Show scan result and intent')
+  .option('--print-prompt', 'Print enhanced prompt before sending to AI')
+  .option('--verbose', 'Show detected stack and intent')
   .action(async (rawPrompt: string, opts: {
-    provider: string;
+    provider?: string;
     dryRun: boolean;
     printPrompt: boolean;
     verbose: boolean;
   }) => {
+    if (!rawPrompt) {
+      program.help();
+      return;
+    }
+
     const cwd = process.cwd();
     const spinner = ora();
 
@@ -72,10 +96,7 @@ program
         process.exit(0);
       }
 
-      spinner.start('Sending to AI...');
       const provider = getProvider(config);
-      spinner.stop();
-
       console.log(`\n[${provider.name}]\n`);
       await provider.send(enhanced.enhanced);
 

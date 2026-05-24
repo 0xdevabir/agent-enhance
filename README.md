@@ -4,7 +4,7 @@
 
 ## What it does
 
-Instead of sending `build login page` directly to Claude/Codex:
+Instead of sending `build login page` directly to Claude/Codex/OpenCode:
 
 1. Scans your project (stack, frameworks, folder structure)
 2. Analyzes your intent
@@ -14,18 +14,107 @@ Instead of sending `build login page` directly to Claude/Codex:
 
 **Same effort. Dramatically better output.**
 
+---
+
 ## Installation
 
+### Prerequisites
+
+- Node.js 20+
+- At least one AI coding tool: [Claude Code](https://claude.ai/code), [OpenCode](https://opencode.ai), or [Codex CLI](https://github.com/openai/codex)
+- An [Anthropic API key](https://console.anthropic.com/) (for the standalone CLI mode)
+
+### Step 1 — Clone and build
+
 ```bash
-npm install -g enhance
+git clone https://github.com/0xdevabir/agent-enhance.git
+cd agent-enhance
+npm install
+npm run build
+```
+
+### Step 2 — Install globally
+
+**Option A: Fix npm permissions first (recommended — do once, no sudo ever again)**
+
+```bash
+mkdir -p ~/.npm-global
+npm config set prefix '~/.npm-global'
+echo 'export PATH=$HOME/.npm-global/bin:$PATH' >> ~/.zshrc
+source ~/.zshrc
+npm install -g .
+```
+
+> If you use `bash` instead of `zsh`, replace `~/.zshrc` with `~/.bashrc`.
+
+**Option B: Use sudo**
+
+```bash
+sudo npm install -g .
+```
+
+### Step 3 — Run setup (installs /enhance for your AI tools)
+
+```bash
+enhance setup
+```
+
+This detects which AI coding tools you have installed (Claude Code, OpenCode, Codex CLI) and automatically installs the `/enhance` slash command for each one.
+
+```
+Enhance — Setup
+
+Detected: Claude Code, OpenCode
+Not found: Codex CLI
+
+✓ Claude Code → /Users/you/.claude/commands/enhance.md
+✓ OpenCode    → /Users/you/.opencode/commands/enhance.md
+
+Ready. In any project, type:
+
+  /enhance build a login page
+  /enhance fix the auth bug
+  /enhance refactor the user service
+```
+
+**Setup options:**
+```bash
+enhance setup --force   # overwrite existing installations
+enhance setup --all     # install for all tools even if not detected
+```
+
+### Step 4 — Use it
+
+Open Claude Code, OpenCode, or Codex CLI in any project and type:
+
+```
+/enhance build a login page with email and password
+```
+
+---
+
+## Usage
+
+### Inside Claude Code / OpenCode / Codex CLI (after `enhance setup`)
+
+```
+/enhance build a login page with email and password
+/enhance fix the auth bug
+/enhance create a payment form with Stripe
+/enhance refactor the user service to use dependency injection
+/enhance add dark mode support
+```
+
+### Standalone CLI (calls AI directly)
+
+Requires API key:
+```bash
 export ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-## Quick Start
-
 ```bash
 # Basic — scans project, enhances prompt, calls Claude
-enhance "build a login page with email and password"
+enhance "build a login page"
 
 # Dry run — see the enhanced prompt without calling AI
 enhance "fix the auth bug" --dry-run
@@ -33,16 +122,18 @@ enhance "fix the auth bug" --dry-run
 # Show enhanced prompt AND call AI
 enhance "create dashboard component" --print-prompt
 
-# See what was detected (stack, intent)
+# See detected stack and intent
 enhance "refactor user service" --verbose
 
 # Use a different provider
 enhance "add payment form" --provider codex
 ```
 
+---
+
 ## Configuration
 
-Create `.enhancerc.json` in your project root:
+Create `.enhancerc.json` in your project root to customize behavior per-project:
 
 ```json
 {
@@ -57,40 +148,51 @@ Create `.enhancerc.json` in your project root:
 |---|---|---|
 | `provider` | `claude` | AI provider: `claude`, `codex`, `opencode` |
 | `model` | `claude-sonnet-4-6` | Model ID |
-| `maxContextTokens` | `3000` | Context file budget |
-| `customInstructions` | — | Extra instructions always injected |
+| `maxContextTokens` | `3000` | Max characters of project files to include |
+| `customInstructions` | — | Extra instructions always injected into every prompt |
+
+---
 
 ## Providers
 
 ### Claude (default)
+
+Requires `ANTHROPIC_API_KEY`. Get one at [console.anthropic.com](https://console.anthropic.com/).
+
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
 enhance "build login page"
 ```
 
 ### Codex CLI
+
 ```bash
 npm install -g @openai/codex
 enhance "build login page" --provider codex
 ```
 
 ### OpenCode
+
 ```bash
 npm install -g opencode
 enhance "build login page" --provider opencode
 ```
 
+---
+
 ## What Enhance Detects
 
-**Frameworks:** Next.js, React, Vue, Svelte, Nuxt, Remix, Astro, Express, Fastify, Hono, NestJS
+| Category | Detected |
+|---|---|
+| Frameworks | Next.js, React, Vue, Svelte, Nuxt, Remix, Astro, Express, Fastify, Hono, NestJS |
+| Styling | TailwindCSS, shadcn/ui, Material UI, Chakra UI, Ant Design |
+| ORMs | Prisma, Drizzle, TypeORM, Mongoose |
+| Testing | Vitest, Jest, Playwright, Cypress |
+| Language | TypeScript vs JavaScript |
+| Router | Next.js App Router vs Pages Router |
+| Package manager | npm, yarn, pnpm, bun |
 
-**Styling:** TailwindCSS, shadcn/ui, Material UI, Chakra UI, Ant Design
-
-**ORMs:** Prisma, Drizzle, TypeORM, Mongoose
-
-**Testing:** Vitest, Jest, Playwright, Cypress
-
-**Router type:** Next.js App Router vs Pages Router
+---
 
 ## Example Enhancement
 
@@ -110,11 +212,6 @@ You are working inside a Next.js TypeScript project.
 - ORM: Prisma
 - Next.js Router: App Router
 
-## Project Structure
-Top-level directories: app/src/public
-Inside src/: components/lib/hooks
-Uses Next.js App Router (app/ directory)
-
 ## Task
 Create: build login page
 
@@ -126,20 +223,32 @@ Create: build login page
 - Use Tailwind classes — no custom CSS unless unavoidable
 - Use shadcn/ui components over building from scratch
 - Never store plain text passwords — use bcrypt or argon2
-- Use httpOnly, secure cookies for session tokens
+- Use httpOnly, secure cookies for session tokens — never localStorage
+- Validate and sanitize all auth inputs server-side
+- Consider rate limiting on login/signup endpoints
 - ...
 ```
+
+---
 
 ## Development
 
 ```bash
-git clone https://github.com/0xdevabir/agent-enhance
+git clone https://github.com/0xdevabir/agent-enhance.git
 cd agent-enhance
 npm install
+
+# Run without building
 npm run dev -- "build login page" --dry-run
+
+# Run tests
 npm test
+
+# Build
 npm run build
 ```
+
+---
 
 ## License
 
