@@ -107,9 +107,9 @@ function InstallBox() {
 
 export default function Home() {
   return (
-    <div className="relative w-full flex flex-col min-h-screen">
+    <div className="relative">
       <BackgroundOrbs />
-      <div className="relative z-10 w-full flex flex-col min-h-screen">
+      <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar />
 
         {/* ── Hero ─────────────────────────────────────── */}
