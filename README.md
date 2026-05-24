@@ -23,11 +23,30 @@ Instead of sending `build login page` directly to Claude/Codex/OpenCode:
 - Node.js 20+
 - At least one AI coding tool: [Claude Code](https://claude.ai/code), [OpenCode](https://opencode.ai), or [Codex CLI](https://github.com/openai/codex)
 
-### Step 1 — Install globally
+### Option A — No install (npx)
+
+```bash
+npx @0xdevabir/enhance@latest "build a login page"
+```
+
+Runs directly without installing anything globally. Great for trying it out or if you hit permission errors.
+
+### Option B — Global install
 
 ```bash
 npm install -g @0xdevabir/enhance
 ```
+
+> **Permission error (EACCES)?** Fix npm's global prefix first, then retry:
+> ```bash
+> mkdir -p ~/.npm-global
+> npm config set prefix '~/.npm-global'
+> echo 'export PATH=$HOME/.npm-global/bin:$PATH' >> ~/.zshrc
+> source ~/.zshrc
+> npm install -g @0xdevabir/enhance
+> ```
+
+### Step 2 — Run setup
 
 ### Step 2 — Run setup
 
