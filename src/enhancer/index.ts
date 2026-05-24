@@ -3,7 +3,12 @@ import { getInjections } from './injectors.js';
 import { buildEnhancedPrompt } from './template.js';
 import type { ScanResult, EnhancedPrompt } from '../types.js';
 
-export function enhance(rawPrompt: string, scan: ScanResult, contextFiles: string): EnhancedPrompt {
+export function enhance(
+  rawPrompt: string,
+  scan: ScanResult,
+  contextFiles: string,
+  projectInstructions: string = '',
+): EnhancedPrompt {
   const intent = analyzeIntent(rawPrompt);
   const injections = getInjections(scan.stack, intent);
   const enhanced = buildEnhancedPrompt({
@@ -12,6 +17,7 @@ export function enhance(rawPrompt: string, scan: ScanResult, contextFiles: strin
     intent,
     contextFiles,
     injections,
+    projectInstructions,
   });
 
   return { original: rawPrompt, enhanced, intent, stack: scan.stack };

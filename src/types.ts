@@ -22,6 +22,9 @@ export interface Intent {
   action: 'create' | 'fix' | 'refactor' | 'explain' | 'add' | 'delete' | 'unknown';
   entity: 'page' | 'component' | 'api' | 'hook' | 'util' | 'config' | 'style' | 'unknown';
   feature: string;
+  scope: 'file' | 'feature' | 'system';
+  complexity: 'simple' | 'feature' | 'system';
+  confidence: number;
   target?: string;
   rawPrompt: string;
 }

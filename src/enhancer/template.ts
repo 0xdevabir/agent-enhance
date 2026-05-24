@@ -6,78 +6,66 @@ interface TemplateOpts {
   intent: Intent;
   contextFiles: string;
   injections: string[];
+  projectInstructions?: string;
 }
 
 export function buildEnhancedPrompt(opts: TemplateOpts): string {
-  const { stack, structure, intent, contextFiles, injections } = opts;
+  const { stack, structure, intent, contextFiles, injections, projectInstructions } = opts;
+  const sections: string[] = [];
 
-  const stackLabel = formatStack(stack);
-  const structureLabel = formatStructure(structure);
-  const taskDescription = buildTaskDescription(intent);
-  const requirementsList = injections.map(r => `- ${r}`).join('\n');
+  // 1. Project instructions (CLAUDE.md / AGENTS.md) — highest priority
+  if (projectInstructions) {
+    sections.push(`## Project Instructions\n\n${projectInstructions}`);
+  }
 
-  const contextSection = contextFiles
-    ? `\n## Existing Code Context\n\n${contextFiles}`
-    : '';
+  // 2. Project context
+  sections.push(`## Project Context
 
-  return `You are working inside a ${stackLabel} project.
-
-## Project Stack
+**Stack**: ${formatStack(stack)}
 ${formatStackDetails(stack)}
 
-## Project Structure
-${structureLabel}
+**Structure**: ${formatStructure(structure)}`);
 
-## Task
-${taskDescription}
+  // 3. Task
+  sections.push(`## Task\n\n${buildTaskDescription(intent)}`);
 
-## Requirements
-${requirementsList}
-${contextSection}
+  // 4. Requirements (last 3 are universal "always" rules)
+  const specific = injections.slice(0, -3);
+  const universal = injections.slice(-3);
+  const requirementLines = [
+    ...specific.map(r => `- ${r}`),
+    ...(specific.length > 0 ? ['', '**Always:**'] : ['**Always:**']),
+    ...universal.map(r => `- ${r}`),
+  ].join('\n');
+  sections.push(`## Requirements\n\n${requirementLines}`);
 
----
-Complete the task above. Follow every requirement. At the end, list every file you created or modified.`;
+  // 5. Relevant code
+  if (contextFiles) {
+    sections.push(`## Relevant Code\n\n${contextFiles}`);
+  }
+
+  // 6. Expected output format (intent-specific)
+  sections.push(`## Expected Output\n\n${buildOutputFormat(intent)}`);
+
+  return sections.join('\n\n---\n\n');
 }
 
-function formatStack(stack: ProjectStack): string {
-  const primary = stack.frameworks[0] ?? 'Node.js';
-  const lang = stack.language === 'typescript' ? 'TypeScript' : 'JavaScript';
-  return `${capitalize(primary)} ${lang}`;
-}
-
-function formatStackDetails(stack: ProjectStack): string {
-  const lines: string[] = [];
-  lines.push(`- **Language**: ${stack.language === 'typescript' ? 'TypeScript' : 'JavaScript'}`);
-  if (stack.frameworks.length > 0) {
-    lines.push(`- **Frameworks**: ${stack.frameworks.map(capitalize).join(', ')}`);
+function buildOutputFormat(intent: Intent): string {
+  switch (intent.action) {
+    case 'fix':
+      return 'Show exactly what changed. Explain in one sentence why it was broken. Provide the corrected code. List every file modified at the end.';
+    case 'create':
+    case 'add':
+      return 'First list every file you will create or modify and why. Then implement each file completely. End with a summary list of all created/modified files.';
+    case 'refactor':
+      return 'For each change, show before and after. Explain the improvement in one line. Do not change behavior — only structure. List every file modified at the end.';
+    case 'explain':
+      return 'Walk through step by step. Reference specific function names, line numbers, or variable names from the existing code. Use concrete examples.';
+    case 'delete':
+      return 'List exactly what you will remove and why. Show the cleaned-up result. Confirm nothing else depends on the removed code.';
+    default:
+      return 'Be thorough and precise. Show all changes. List every file created or modified at the end of your response.';
   }
-  if (stack.uiLibrary) {
-    lines.push(`- **UI Library**: ${capitalize(stack.uiLibrary)}`);
-  }
-  if (stack.orm) {
-    lines.push(`- **ORM**: ${capitalize(stack.orm)}`);
-  }
-  if (stack.testing) {
-    lines.push(`- **Testing**: ${capitalize(stack.testing)}`);
-  }
-  if (stack.nextRouterType) {
-    lines.push(`- **Next.js Router**: ${stack.nextRouterType === 'app' ? 'App Router' : 'Pages Router'}`);
-  }
-  lines.push(`- **Package Manager**: ${stack.packageManager}`);
-  return lines.join('\n');
-}
-
-function formatStructure(structure: FolderStructure): string {
-  const lines: string[] = [];
-  if (structure.dirs.length > 0) {
-    lines.push(`Top-level directories: \`${structure.dirs.join('/'  )}\``);
-  }
-  if (structure.hasSrcDir && structure.srcDirs.length > 0) {
-    lines.push(`Inside src/: \`${structure.srcDirs.join('/')}\``);
-  }
-  if (structure.hasAppDir) lines.push('Uses Next.js App Router (`app/` directory)');
-  if (structure.hasPagesDir) lines.push('Uses Next.js Pages Router (`pages/` directory)');
-  return lines.join('\n') || 'Standard project structure';
 }
 
 function buildTaskDescription(intent: Intent): string {
@@ -90,9 +78,40 @@ function buildTaskDescription(intent: Intent): string {
     delete: 'Remove',
     unknown: 'Handle',
   };
-
   const action = actionMap[intent.action] ?? 'Handle';
-  return `${action}: ${intent.rawPrompt}`;
+  return `**${action}**: ${intent.rawPrompt}`;
+}
+
+function formatStack(stack: ProjectStack): string {
+  const primary = stack.frameworks[0] ?? 'Node.js';
+  const lang = stack.language === 'typescript' ? 'TypeScript' : 'JavaScript';
+  return `${capitalize(primary)} / ${lang}`;
+}
+
+function formatStackDetails(stack: ProjectStack): string {
+  const lines: string[] = [];
+  if (stack.frameworks.length > 0) {
+    lines.push(`- **Frameworks**: ${stack.frameworks.map(capitalize).join(', ')}`);
+  }
+  if (stack.uiLibrary) lines.push(`- **UI**: ${capitalize(stack.uiLibrary)}`);
+  if (stack.orm) lines.push(`- **ORM**: ${capitalize(stack.orm)}`);
+  if (stack.testing) lines.push(`- **Testing**: ${capitalize(stack.testing)}`);
+  if (stack.nextRouterType) {
+    lines.push(`- **Router**: ${stack.nextRouterType === 'app' ? 'App Router' : 'Pages Router'}`);
+  }
+  lines.push(`- **Package Manager**: ${stack.packageManager}`);
+  return lines.join('\n');
+}
+
+function formatStructure(structure: FolderStructure): string {
+  const parts: string[] = [];
+  if (structure.dirs.length > 0) parts.push(`dirs: \`${structure.dirs.join(', ')}\``);
+  if (structure.hasSrcDir && structure.srcDirs.length > 0) {
+    parts.push(`src/: \`${structure.srcDirs.join(', ')}\``);
+  }
+  if (structure.hasAppDir) parts.push('App Router (`app/`)');
+  if (structure.hasPagesDir) parts.push('Pages Router (`pages/`)');
+  return parts.join(' | ') || 'Standard layout';
 }
 
 function capitalize(s: string): string {

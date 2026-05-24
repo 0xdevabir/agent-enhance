@@ -6,7 +6,7 @@ import { loadConfig } from '../config/index.js';
 import { scanProject } from '../scanner/index.js';
 import { getCached, setCached } from '../cache/index.js';
 import { analyzeIntent } from '../analyzer/intent.js';
-import { findRelevantFiles } from '../analyzer/context.js';
+import { findRelevantFiles, findProjectInstructions } from '../analyzer/context.js';
 import { enhance } from '../enhancer/index.js';
 import { getProvider } from '../providers/index.js';
 import { runSetup } from './setup.js';
@@ -79,10 +79,17 @@ Examples:
       }
 
       spinner.text = 'Optimizing context...';
-      const contextFiles = await findRelevantFiles(cwd, intent, scan.structure);
+      const [contextFiles, projectInstructions] = await Promise.all([
+        findRelevantFiles(cwd, intent, scan.structure),
+        findProjectInstructions(cwd),
+      ]);
+
+      if (opts.verbose && projectInstructions) {
+        console.log('\nProject instructions found (CLAUDE.md / AGENTS.md)');
+      }
 
       spinner.text = 'Enhancing prompt...';
-      const enhanced = enhance(rawPrompt, scan, contextFiles);
+      const enhanced = enhance(rawPrompt, scan, contextFiles, projectInstructions);
 
       spinner.stop();
 

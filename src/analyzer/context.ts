@@ -1,7 +1,34 @@
 import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import fg from 'fast-glob';
 import type { Intent, FolderStructure } from '../types.js';
+
+const PROJECT_INSTRUCTION_FILES = [
+  '.claude/CLAUDE.md',
+  'CLAUDE.md',
+  'AGENTS.md',
+  '.cursorrules',
+];
+
+export async function findProjectInstructions(root: string): Promise<string> {
+  const parts: string[] = [];
+
+  // Check current root and one level up (monorepo support)
+  const searchRoots = [root, dirname(root)];
+
+  for (const searchRoot of searchRoots) {
+    for (const fileName of PROJECT_INSTRUCTION_FILES) {
+      const content = await tryRead(join(searchRoot, fileName));
+      if (content) {
+        const relPath = fileName;
+        parts.push(`<!-- Source: ${relPath} -->\n${truncateLines(content, 300)}`);
+        break; // only one file per search root
+      }
+    }
+  }
+
+  return parts.join('\n\n');
+}
 
 const FEATURE_PATTERNS: Record<string, string[]> = {
   auth: ['*auth*', '*login*', '*logout*', '*session*', '*jwt*', '*token*', '*credential*', '*middleware*', '*guard*'],
