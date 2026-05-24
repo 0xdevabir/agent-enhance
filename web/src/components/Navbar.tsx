@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { href: "/docs/installation", label: "Installation" },
   { href: "/docs/usage", label: "Usage" },
   { href: "/docs/configuration", label: "Config" },
+  { href: "/try", label: "Try it" },
   { href: "https://github.com/0xdevabir/agent-enhance", label: "GitHub", external: true },
 ];
 
