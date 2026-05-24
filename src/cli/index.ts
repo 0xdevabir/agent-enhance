@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { createInterface } from 'readline';
+import { createRequire } from 'module';
 import ora from 'ora';
 import chalk from 'chalk';
 import { error } from './logger.js';
@@ -15,12 +16,15 @@ import { getProvider } from '../providers/index.js';
 import { runSetup } from './setup.js';
 import type { Intent } from '../types.js';
 
+const require = createRequire(import.meta.url);
+const pkg = require('../package.json') as { version: string };
+
 const program = new Command();
 
 program
   .name('enhance')
   .description('AI prompt middleware — upgrades vague prompts into production-quality AI instructions')
-  .version('0.1.0');
+  .version(pkg.version);
 
 // ── setup ──────────────────────────────────────────────────────────────────
 program
@@ -231,7 +235,9 @@ function printColoredPreview(prompt: string): void {
     'Project Context':      chalk.blue,
     'Task':                 chalk.yellow,
     'Requirements':         chalk.green,
-    'Recent Changes':       chalk.cyan,
+    'Assumptions':          chalk.cyan,
+    'Watch out for':        chalk.red,
+    'Recent Changes':       chalk.dim,
     'Relevant Code':        chalk.dim,
     'Code':                 chalk.dim,
     'Expected Output':      chalk.white,
@@ -245,13 +251,21 @@ function printColoredPreview(prompt: string): void {
   console.log(chalk.dim(`Total: ~${totalTokens} tokens\n`));
 
   for (const section of sections) {
+    const sectionTokens = Math.ceil(section.length / CHARS_PER_TOKEN);
+
+    // Version/angle header — plain text starting with 📍, no ## marker
+    const versionMatch = section.trim().match(/^(📍.+)/);
+    if (versionMatch && !section.match(/^## /m)) {
+      console.log(chalk.bold.cyan(versionMatch[1]) + chalk.dim(` (~${sectionTokens} tok)`));
+      console.log();
+      continue;
+    }
+
     const headerMatch = section.match(/^## (.+)/m);
     const headerName = headerMatch?.[1]?.trim() ?? 'Section';
     const colorFn = SECTION_COLORS[headerName] ?? chalk.white;
-    const sectionTokens = Math.ceil(section.length / CHARS_PER_TOKEN);
 
     console.log(colorFn(chalk.bold(`## ${headerName}`)) + chalk.dim(` (~${sectionTokens} tok)`));
-    // Print body (everything after the first line)
     const body = section.replace(/^## .+\n?/, '').trim();
     if (body) {
       const lines = body.split('\n');
