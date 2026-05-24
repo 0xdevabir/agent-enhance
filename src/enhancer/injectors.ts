@@ -1,6 +1,6 @@
-import type { ProjectStack, Intent } from '../types.js';
+import type { ProjectStack, Intent, EnhanceConfig } from '../types.js';
 
-export function getInjections(stack: ProjectStack, intent: Intent): string[] {
+export function getInjections(stack: ProjectStack, intent: Intent, config?: Partial<EnhanceConfig>): string[] {
   const rules: string[] = [];
 
   // TypeScript rules
@@ -85,10 +85,20 @@ export function getInjections(stack: ProjectStack, intent: Intent): string[] {
     rules.push('Use appropriate HTTP status codes');
   }
 
-  // General quality rules
+  // General quality rules (always last — these become the "universal" tier in template)
   rules.push('Match the existing code style and file naming conventions');
   rules.push('List every file you create or modify at the end of your response');
   rules.push('Prefer reusing existing utilities over creating new ones');
+
+  // Config: project-specific custom rules (highest priority — injected after stack rules)
+  if (config?.customRules?.length) {
+    rules.unshift(...config.customRules);
+  }
+
+  // Config: feature-specific rules from config
+  if (config?.featureRules?.[intent.feature]?.length) {
+    rules.unshift(...config.featureRules[intent.feature]!);
+  }
 
   return rules;
 }

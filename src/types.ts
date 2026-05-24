@@ -42,6 +42,9 @@ export interface EnhanceConfig {
   maxContextTokens: number;
   customInstructions?: string;
   apiKey?: string;
+  customRules?: string[];
+  featureRules?: Record<string, string[]>;
+  alwaysInclude?: string[];
 }
 
 export interface EnhancedPrompt {

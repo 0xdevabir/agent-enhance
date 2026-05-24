@@ -7,18 +7,55 @@ interface TemplateOpts {
   contextFiles: string;
   injections: string[];
   projectInstructions?: string;
+  gitContext?: string;
 }
 
 export function buildEnhancedPrompt(opts: TemplateOpts): string {
-  const { stack, structure, intent, contextFiles, injections, projectInstructions } = opts;
+  const { intent } = opts;
+  switch (intent.complexity) {
+    case 'simple':  return buildSimplePrompt(opts);
+    case 'system':  return buildSystemPrompt(opts);
+    default:        return buildFeaturePrompt(opts);
+  }
+}
+
+// simple: bug fixes, single-file changes, explanations — minimal overhead
+function buildSimplePrompt(opts: TemplateOpts): string {
+  const { stack, intent, contextFiles, gitContext, injections, projectInstructions } = opts;
   const sections: string[] = [];
 
-  // 1. Project instructions (CLAUDE.md / AGENTS.md) — highest priority
   if (projectInstructions) {
     sections.push(`## Project Instructions\n\n${projectInstructions}`);
   }
 
-  // 2. Project context
+  sections.push(`## Context\n**Stack**: ${formatStack(stack)}\n${formatStackDetails(stack)}`);
+  sections.push(`## Task\n\n${buildTaskDescription(intent)}`);
+
+  // For simple tasks, only include the 3 universal rules + at most 3 specific ones
+  const rules = [...injections.slice(0, 3), ...injections.slice(-3)];
+  sections.push(`## Requirements\n\n${rules.map(r => `- ${r}`).join('\n')}`);
+
+  if (gitContext) {
+    sections.push(`## Recent Changes\n\n${gitContext}`);
+  }
+
+  if (contextFiles) {
+    sections.push(`## Code\n\n${contextFiles}`);
+  }
+
+  sections.push(`## Expected Output\n\n${buildOutputFormat(intent)}`);
+  return sections.join('\n\n---\n\n');
+}
+
+// feature: new pages/components/APIs — full spec with requirements
+function buildFeaturePrompt(opts: TemplateOpts): string {
+  const { stack, structure, intent, contextFiles, gitContext, injections, projectInstructions } = opts;
+  const sections: string[] = [];
+
+  if (projectInstructions) {
+    sections.push(`## Project Instructions\n\n${projectInstructions}`);
+  }
+
   sections.push(`## Project Context
 
 **Stack**: ${formatStack(stack)}
@@ -26,10 +63,8 @@ ${formatStackDetails(stack)}
 
 **Structure**: ${formatStructure(structure)}`);
 
-  // 3. Task
   sections.push(`## Task\n\n${buildTaskDescription(intent)}`);
 
-  // 4. Requirements (last 3 are universal "always" rules)
   const specific = injections.slice(0, -3);
   const universal = injections.slice(-3);
   const requirementLines = [
@@ -39,14 +74,54 @@ ${formatStackDetails(stack)}
   ].join('\n');
   sections.push(`## Requirements\n\n${requirementLines}`);
 
-  // 5. Relevant code
+  if (gitContext) {
+    sections.push(`## Recent Changes\n\n${gitContext}`);
+  }
+
   if (contextFiles) {
     sections.push(`## Relevant Code\n\n${contextFiles}`);
   }
 
-  // 6. Expected output format (intent-specific)
   sections.push(`## Expected Output\n\n${buildOutputFormat(intent)}`);
+  return sections.join('\n\n---\n\n');
+}
 
+// system: architectural changes, full rewrites — step-by-step breakdown first
+function buildSystemPrompt(opts: TemplateOpts): string {
+  const { stack, structure, intent, contextFiles, gitContext, injections, projectInstructions } = opts;
+  const sections: string[] = [];
+
+  if (projectInstructions) {
+    sections.push(`## Project Instructions\n\n${projectInstructions}`);
+  }
+
+  sections.push(`## Project Context
+
+**Stack**: ${formatStack(stack)}
+${formatStackDetails(stack)}
+
+**Structure**: ${formatStructure(structure)}`);
+
+  sections.push(`## Task\n\n${buildTaskDescription(intent)}
+
+> This is a system-level change. Before writing any code:
+> 1. Analyze the current state and identify all affected areas
+> 2. Define your implementation plan step by step
+> 3. Highlight any breaking changes or migration steps
+> 4. Then implement each step`);
+
+  const requirementLines = injections.map(r => `- ${r}`).join('\n');
+  sections.push(`## Requirements\n\n${requirementLines}`);
+
+  if (gitContext) {
+    sections.push(`## Recent Changes\n\n${gitContext}`);
+  }
+
+  if (contextFiles) {
+    sections.push(`## Relevant Code\n\n${contextFiles}`);
+  }
+
+  sections.push(`## Expected Output\n\nStart with a numbered implementation plan. Then implement each step. Mark breaking changes with ⚠️. List every file created or modified at the end.`);
   return sections.join('\n\n---\n\n');
 }
 
