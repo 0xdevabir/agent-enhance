@@ -1,6 +1,7 @@
 import type { ProjectStack, Intent, EnhanceConfig } from '../types.js';
 
-export function getInjections(stack: ProjectStack, intent: Intent, config?: Partial<EnhanceConfig>): string[] {
+/** @deprecated Use generateDomainEnhancements instead. Kept as fallback when API key is unavailable. */
+export function getFallbackInjections(stack: ProjectStack, intent: Intent, config?: Partial<EnhanceConfig>): string[] {
   const rules: string[] = [];
 
   // TypeScript rules
