@@ -1,22 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+const { mockCreate } = vi.hoisted(() => ({ mockCreate: vi.fn() }));
+
+vi.mock('@anthropic-ai/sdk', () => ({
+  default: vi.fn(function () {
+    return { messages: { create: mockCreate } };
+  }),
+}));
+
 import { generateDomainEnhancements } from './domain-requirements.js';
 import type { Intent, ProjectStack } from '../types.js';
-
-vi.mock('@anthropic-ai/sdk', () => {
-  const mockCreate = vi.fn();
-  return {
-    default: vi.fn().mockImplementation(() => ({
-      messages: { create: mockCreate },
-    })),
-    __mockCreate: mockCreate,
-  };
-});
-
-async function getMockCreate() {
-  const mod = await import('@anthropic-ai/sdk');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (mod as any).__mockCreate as ReturnType<typeof vi.fn>;
-}
 
 const PAYMENT_INTENT: Intent = {
   action: 'add',
@@ -38,13 +31,11 @@ const TS_STACK: ProjectStack = {
 };
 
 describe('generateDomainEnhancements', () => {
-  beforeEach(async () => {
-    const mockCreate = await getMockCreate();
+  beforeEach(() => {
     mockCreate.mockReset();
   });
 
   it('parses valid JSON response into requirements/assumptions/gotchas', async () => {
-    const mockCreate = await getMockCreate();
     mockCreate.mockResolvedValue({
       content: [{
         type: 'text',
@@ -83,7 +74,6 @@ describe('generateDomainEnhancements', () => {
   });
 
   it('falls back to JSON extraction when response has extra prose', async () => {
-    const mockCreate = await getMockCreate();
     const payload = {
       requirements: ['Use idempotency keys keyed on event.id'],
       assumptions: ['Assumed Stripe'],
@@ -109,7 +99,6 @@ describe('generateDomainEnhancements', () => {
   });
 
   it('throws when response contains no valid JSON', async () => {
-    const mockCreate = await getMockCreate();
     mockCreate.mockResolvedValue({
       content: [{ type: 'text', text: 'I cannot help with that.' }],
     });
@@ -120,7 +109,6 @@ describe('generateDomainEnhancements', () => {
   });
 
   it('uses angle-specific focus in system prompt', async () => {
-    const mockCreate = await getMockCreate();
     mockCreate.mockResolvedValue({
       content: [{
         type: 'text',
