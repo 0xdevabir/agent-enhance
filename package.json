@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "AI prompt middleware — intelligently rewrites developer prompts before sending to coding agents",
   "bin": {
-    "enhance": "./dist/cli/index.js"
+    "enhance": "./dist/index.js"
   },
   "scripts": {
     "dev": "tsx src/cli/index.ts",
