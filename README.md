@@ -22,44 +22,20 @@ Instead of sending `build login page` directly to Claude/Codex/OpenCode:
 
 - Node.js 20+
 - At least one AI coding tool: [Claude Code](https://claude.ai/code), [OpenCode](https://opencode.ai), or [Codex CLI](https://github.com/openai/codex)
-- An [Anthropic API key](https://console.anthropic.com/) (for the standalone CLI mode)
 
-### Step 1 — Clone and build
-
-```bash
-git clone https://github.com/0xdevabir/agent-enhance.git
-cd agent-enhance
-npm install
-npm run build
-```
-
-### Step 2 — Install globally
-
-**Option A: Fix npm permissions first (recommended — do once, no sudo ever again)**
+### Step 1 — Install globally
 
 ```bash
-mkdir -p ~/.npm-global
-npm config set prefix '~/.npm-global'
-echo 'export PATH=$HOME/.npm-global/bin:$PATH' >> ~/.zshrc
-source ~/.zshrc
-npm install -g .
+npm install -g @0xdevabir/enhance
 ```
 
-> If you use `bash` instead of `zsh`, replace `~/.zshrc` with `~/.bashrc`.
-
-**Option B: Use sudo**
-
-```bash
-sudo npm install -g .
-```
-
-### Step 3 — Run setup (installs /enhance for your AI tools)
+### Step 2 — Run setup
 
 ```bash
 enhance setup
 ```
 
-This detects which AI coding tools you have installed (Claude Code, OpenCode, Codex CLI) and automatically installs the `/enhance` slash command for each one.
+Detects which AI coding tools you have installed and automatically adds the `/enhance` slash command to each one.
 
 ```
 Enhance — Setup
@@ -67,8 +43,8 @@ Enhance — Setup
 Detected: Claude Code, OpenCode
 Not found: Codex CLI
 
-✓ Claude Code → /Users/you/.claude/commands/enhance.md
-✓ OpenCode    → /Users/you/.opencode/commands/enhance.md
+✓ Claude Code → ~/.claude/commands/enhance.md
+✓ OpenCode    → ~/.opencode/commands/enhance.md
 
 Ready. In any project, type:
 
@@ -77,13 +53,13 @@ Ready. In any project, type:
   /enhance refactor the user service
 ```
 
-**Setup options:**
+**Options:**
 ```bash
 enhance setup --force   # overwrite existing installations
 enhance setup --all     # install for all tools even if not detected
 ```
 
-### Step 4 — Use it
+### Step 3 — Use it
 
 Open Claude Code, OpenCode, or Codex CLI in any project and type:
 
