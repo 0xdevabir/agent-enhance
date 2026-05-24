@@ -52,6 +52,8 @@ export interface EnhancedPrompt {
   enhanced: string;
   intent: Intent;
   stack: ProjectStack;
+  iteration: number;
+  angle: string;
 }
 
 export interface AIProvider {

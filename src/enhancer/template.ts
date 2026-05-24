@@ -1,4 +1,6 @@
 import type { ProjectStack, FolderStructure, Intent } from '../types.js';
+import type { Angle } from './angles.js';
+import { ANGLE_LABELS } from './angles.js';
 
 interface TemplateOpts {
   stack: ProjectStack;
@@ -8,6 +10,10 @@ interface TemplateOpts {
   injections: string[];
   projectInstructions?: string;
   gitContext?: string;
+  angle?: Angle;
+  assumptions?: string[];
+  gotchas?: string[];
+  iteration?: number;
 }
 
 export function buildEnhancedPrompt(opts: TemplateOpts): string {
@@ -19,10 +25,32 @@ export function buildEnhancedPrompt(opts: TemplateOpts): string {
   }
 }
 
+function buildVersionHeader(opts: TemplateOpts): string | null {
+  const { angle, iteration } = opts;
+  if (angle === undefined) return null;
+  const v = (iteration ?? 0) + 1;
+  const label = ANGLE_LABELS[angle];
+  return `📍 v${v} — ${label} angle`;
+}
+
+function buildAssumptionsSection(assumptions: string[]): string | null {
+  if (!assumptions.length) return null;
+  return `## Assumptions\n\n${assumptions.map(a => `- ${a}`).join('\n')}`;
+}
+
+function buildGotchasSection(gotchas: string[]): string | null {
+  if (!gotchas.length) return null;
+  return `## Watch out for\n\n${gotchas.map(g => `- ${g}`).join('\n')}`;
+}
+
+
 // simple: bug fixes, single-file changes, explanations — minimal overhead
 function buildSimplePrompt(opts: TemplateOpts): string {
-  const { stack, intent, contextFiles, gitContext, injections, projectInstructions } = opts;
+  const { stack, intent, contextFiles, gitContext, injections, projectInstructions, assumptions = [], gotchas = [] } = opts;
   const sections: string[] = [];
+
+  const versionHeader = buildVersionHeader(opts);
+  if (versionHeader) sections.push(versionHeader);
 
   if (projectInstructions) {
     sections.push(`## Project Instructions\n\n${projectInstructions}`);
@@ -31,9 +59,14 @@ function buildSimplePrompt(opts: TemplateOpts): string {
   sections.push(`## Context\n**Stack**: ${formatStack(stack)}\n${formatStackDetails(stack)}`);
   sections.push(`## Task\n\n${buildTaskDescription(intent)}`);
 
-  // For simple tasks, only include the 3 universal rules + at most 3 specific ones
   const rules = [...injections.slice(0, 3), ...injections.slice(-3)];
   sections.push(`## Requirements\n\n${rules.map(r => `- ${r}`).join('\n')}`);
+
+  const assumptionsSection = buildAssumptionsSection(assumptions);
+  if (assumptionsSection) sections.push(assumptionsSection);
+
+  const gotchasSection = buildGotchasSection(gotchas);
+  if (gotchasSection) sections.push(gotchasSection);
 
   if (gitContext) {
     sections.push(`## Recent Changes\n\n${gitContext}`);
@@ -49,8 +82,11 @@ function buildSimplePrompt(opts: TemplateOpts): string {
 
 // feature: new pages/components/APIs — full spec with requirements
 function buildFeaturePrompt(opts: TemplateOpts): string {
-  const { stack, structure, intent, contextFiles, gitContext, injections, projectInstructions } = opts;
+  const { stack, structure, intent, contextFiles, gitContext, injections, projectInstructions, assumptions = [], gotchas = [] } = opts;
   const sections: string[] = [];
+
+  const versionHeader = buildVersionHeader(opts);
+  if (versionHeader) sections.push(versionHeader);
 
   if (projectInstructions) {
     sections.push(`## Project Instructions\n\n${projectInstructions}`);
@@ -73,6 +109,12 @@ ${formatStackDetails(stack)}
     ...universal.map(r => `- ${r}`),
   ].join('\n');
   sections.push(`## Requirements\n\n${requirementLines}`);
+
+  const assumptionsSection = buildAssumptionsSection(assumptions);
+  if (assumptionsSection) sections.push(assumptionsSection);
+
+  const gotchasSection = buildGotchasSection(gotchas);
+  if (gotchasSection) sections.push(gotchasSection);
 
   if (gitContext) {
     sections.push(`## Recent Changes\n\n${gitContext}`);
