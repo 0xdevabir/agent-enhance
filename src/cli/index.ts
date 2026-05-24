@@ -50,6 +50,7 @@ Examples:
   .option('--verbose', 'Show detected stack, intent, and context stats')
   .option('--confirm', 'Show detected intent and ask for approval before enhancing')
   .option('--plan', 'Decompose complex task into sequential sub-prompts (uses AI)')
+  .option('--iteration <n>', 'Angle iteration: 0=completeness, 1=production, 2=dx, 3=alternative', '0')
   .option('--action <action>', 'Override detected action (create|fix|refactor|explain|add|delete)')
   .option('--entity <entity>', 'Override detected entity (page|component|api|hook|util|config|style)')
   .option('--feature <feature>', 'Override detected feature (auth|payment|user|upload|...)')
@@ -61,6 +62,7 @@ Examples:
     verbose: boolean;
     confirm: boolean;
     plan: boolean;
+    iteration: string;
     action?: string;
     entity?: string;
     feature?: string;
@@ -148,9 +150,14 @@ Examples:
       }
 
       spinner.text = 'Enhancing prompt...';
-      const enhanced = enhance(rawPrompt, scan, contextFiles, projectInstructions, gitContext, intent, config);
+      const iteration = Math.max(0, parseInt(opts.iteration ?? '0', 10) || 0);
+      const enhanced = await enhance(rawPrompt, scan, contextFiles, projectInstructions, gitContext, intent, config, iteration);
 
       spinner.stop();
+
+      if (enhanced.angle) {
+        console.log(chalk.dim(`\n  📍 v${iteration + 1} — ${enhanced.angle} angle\n`));
+      }
 
       if (opts.preview) {
         printColoredPreview(enhanced.enhanced);
