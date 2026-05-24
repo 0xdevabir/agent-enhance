@@ -130,8 +130,11 @@ ${formatStackDetails(stack)}
 
 // system: architectural changes, full rewrites — step-by-step breakdown first
 function buildSystemPrompt(opts: TemplateOpts): string {
-  const { stack, structure, intent, contextFiles, gitContext, injections, projectInstructions } = opts;
+  const { stack, structure, intent, contextFiles, gitContext, injections, projectInstructions, assumptions = [], gotchas = [] } = opts;
   const sections: string[] = [];
+
+  const versionHeader = buildVersionHeader(opts);
+  if (versionHeader) sections.push(versionHeader);
 
   if (projectInstructions) {
     sections.push(`## Project Instructions\n\n${projectInstructions}`);
@@ -154,6 +157,12 @@ ${formatStackDetails(stack)}
 
   const requirementLines = injections.map(r => `- ${r}`).join('\n');
   sections.push(`## Requirements\n\n${requirementLines}`);
+
+  const assumptionsSection = buildAssumptionsSection(assumptions);
+  if (assumptionsSection) sections.push(assumptionsSection);
+
+  const gotchasSection = buildGotchasSection(gotchas);
+  if (gotchasSection) sections.push(gotchasSection);
 
   if (gitContext) {
     sections.push(`## Recent Changes\n\n${gitContext}`);
